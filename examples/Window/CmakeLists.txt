@@ -1,0 +1,6 @@
+add_subdirectory(FluentWindow)
+add_subdirectory(MSFluentWindow)
+add_subdirectory(Login)
+add_subdirectory(Settings)
+add_subdirectory(SplashScreen)
+add_subdirectory(SplitFluentWindow)
