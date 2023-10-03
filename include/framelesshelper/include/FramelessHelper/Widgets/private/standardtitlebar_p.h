@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,91 +24,82 @@
 
 #pragma once
 
-#include "framelesshelperwidgets_global.h"
-#include "standardtitlebar.h"
+#include <FramelessHelper/Widgets/framelesshelperwidgets_global.h>
+#include <QtGui/qfont.h>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
-class QPaintEvent;
+class QMouseEvent;
 QT_END_NAMESPACE
+
+#if FRAMELESSHELPER_CONFIG(titlebar)
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
 
+#if FRAMELESSHELPER_CONFIG(system_button)
 class StandardSystemButton;
+#endif
 class ChromePalette;
+class StandardTitleBar;
 
 class FRAMELESSHELPER_WIDGETS_API StandardTitleBarPrivate : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DECLARE_PUBLIC(StandardTitleBar)
     Q_DISABLE_COPY_MOVE(StandardTitleBarPrivate)
 
 public:
+    struct FontMetrics
+    {
+        int width = 0;
+        int height = 0;
+        int ascent = 0;
+    };
+
     explicit StandardTitleBarPrivate(StandardTitleBar *q);
     ~StandardTitleBarPrivate() override;
 
     Q_NODISCARD static StandardTitleBarPrivate *get(StandardTitleBar *pub);
     Q_NODISCARD static const StandardTitleBarPrivate *get(const StandardTitleBar *pub);
 
-    Q_NODISCARD Qt::Alignment titleLabelAlignment() const;
-    void setTitleLabelAlignment(const Qt::Alignment value);
-
-    Q_NODISCARD bool isExtended() const;
-    void setExtended(const bool value);
-
-    Q_NODISCARD bool isHideWhenClose() const;
-    void setHideWhenClose(const bool value);
-
-    Q_NODISCARD ChromePalette *chromePalette() const;
-
-    void paintTitleBar(QPaintEvent *event);
-
-    Q_NODISCARD bool titleLabelVisible() const;
-    void setTitleLabelVisible(const bool value);
-
-    Q_NODISCARD QSize windowIconSize() const;
-    void setWindowIconSize(const QSize &value);
-
-    Q_NODISCARD bool windowIconVisible() const;
-    void setWindowIconVisible(const bool value);
-
-    Q_NODISCARD QFont titleFont() const;
-    void setTitleFont(const QFont &value);
-
-    Q_NODISCARD bool mouseEventHandler(QMouseEvent *event);
-
     Q_NODISCARD QRect windowIconRect() const;
     Q_NODISCARD bool windowIconVisible_real() const;
     Q_NODISCARD bool isInTitleBarIconArea(const QPoint &pos) const;
 
-public Q_SLOTS:
-    void updateMaximizeButton();
-    void updateTitleBarColor();
-    void updateChromeButtonColor();
-    void retranslateUi();
+    Q_NODISCARD QFont defaultFont() const;
+    Q_NODISCARD FontMetrics titleLabelSize() const;
 
-protected:
-    Q_NODISCARD bool eventFilter(QObject *object, QEvent *event) override;
+    Q_SLOT void updateMaximizeButton();
+    Q_SLOT void updateTitleBarColor();
+    Q_SLOT void updateChromeButtonColor();
+    Q_SLOT void retranslateUi();
 
-private:
+    Q_NODISCARD bool mouseEventHandler(QMouseEvent *event);
+
     void initialize();
 
-private:
-    QPointer<StandardTitleBar> q_ptr = nullptr;
-    QScopedPointer<StandardSystemButton> m_minimizeButton;
-    QScopedPointer<StandardSystemButton> m_maximizeButton;
-    QScopedPointer<StandardSystemButton> m_closeButton;
-    QPointer<QWidget> m_window = nullptr;
-    bool m_extended = false;
-    Qt::Alignment m_labelAlignment = {};
-    bool m_hideWhenClose = false;
-    QScopedPointer<ChromePalette> m_chromePalette;
-    bool m_titleLabelVisible = true;
-    std::optional<QSize> m_windowIconSize = std::nullopt;
-    bool m_windowIconVisible = false;
-    std::optional<QFont> m_titleFont = std::nullopt;
-    bool m_closeTriggered = false;
+    StandardTitleBar *q_ptr = nullptr;
+#if (!defined(Q_OS_MACOS) && FRAMELESSHELPER_CONFIG(system_button))
+    StandardSystemButton *minimizeButton = nullptr;
+    StandardSystemButton *maximizeButton = nullptr;
+    StandardSystemButton *closeButton = nullptr;
+#endif
+    QPointer<QWidget> window = nullptr;
+    bool extended = false;
+    Qt::Alignment labelAlignment = {};
+    bool hideWhenClose = false;
+    ChromePalette *chromePalette = nullptr;
+    bool titleLabelVisible = true;
+    std::optional<QSize> windowIconSize = std::nullopt;
+    bool windowIconVisible = false;
+    std::optional<QFont> titleFont = std::nullopt;
+    bool closeTriggered = false;
+
+protected:
+    bool eventFilter(QObject *object, QEvent *event) override;
 };
 
 FRAMELESSHELPER_END_NAMESPACE
 
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(StandardTitleBarPrivate))
+#endif

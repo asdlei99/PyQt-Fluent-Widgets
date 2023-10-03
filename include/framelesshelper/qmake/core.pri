@@ -7,9 +7,6 @@ CORE_PRIV_INC_DIR = $$CORE_PUB_INC_DIR/private
 CORE_EXTRA_INC_DIR = $$PWD/inc/core
 CORE_SRC_DIR = $$PWD/../src/core
 
-DEFINES += \
-    FRAMELESSHELPER_CORE_STATIC
-
 INCLUDEPATH += \
     $$BASE_INC_DIR \
     $$COMMON_INC_DIR \
@@ -26,6 +23,7 @@ DEPENDPATH += \
 
 HEADERS += \
     $$CORE_EXTRA_INC_DIR/framelesshelper.version \
+    $$CORE_EXTRA_INC_DIR/framelesshelper.config \
     $$CORE_PUB_INC_DIR/chromepalette.h \
     $$CORE_PUB_INC_DIR/framelesshelper_qt.h \
     $$CORE_PUB_INC_DIR/framelesshelpercore_global.h \

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,9 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
+
+#ifdef Q_OS_WINDOWS
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
 
@@ -68,3 +70,5 @@ DECL(1122H2)
 } // namespace WindowsVersionHelper
 
 FRAMELESSHELPER_END_NAMESPACE
+
+#endif // Q_OS_WINDOWS

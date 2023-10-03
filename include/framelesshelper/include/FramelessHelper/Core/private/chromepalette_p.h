@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,19 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
-#include "chromepalette.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
+#include <optional>
+
+#if FRAMELESSHELPER_CONFIG(titlebar)
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
+
+class ChromePalette;
 
 class FRAMELESSHELPER_CORE_API ChromePalettePrivate : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DECLARE_PUBLIC(ChromePalette)
     Q_DISABLE_COPY_MOVE(ChromePalettePrivate)
 
@@ -42,11 +47,9 @@ public:
     Q_NODISCARD static ChromePalettePrivate *get(ChromePalette *q);
     Q_NODISCARD static const ChromePalettePrivate *get(const ChromePalette *q);
 
-public Q_SLOTS:
-    void refresh();
+    Q_SLOT void refresh();
 
-private:
-    QPointer<ChromePalette> q_ptr = nullptr;
+    ChromePalette *q_ptr = nullptr;
     // System-defined ones:
     QColor titleBarActiveBackgroundColor_sys = {};
     QColor titleBarInactiveBackgroundColor_sys = {};
@@ -73,4 +76,4 @@ private:
 
 FRAMELESSHELPER_END_NAMESPACE
 
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(ChromePalettePrivate))
+#endif

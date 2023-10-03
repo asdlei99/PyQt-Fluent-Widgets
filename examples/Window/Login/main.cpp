@@ -11,6 +11,7 @@
 #include <QFluentWidgets/Window/FluentWindow.h>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <framelessconfig_p.h>
 
 using namespace qfluentwidgets;
 FRAMELESSHELPER_USE_NAMESPACE
@@ -31,7 +32,7 @@ public:
         setWindowTitle("QFluentWidgets");
         resize(1000, 650);
 
-        setStyleSheet("Demo{background: rgb(242,242,242)}");
+        setStyleSheet("Demo{background: transparent}");
         titleBar->titleLabel()->setStyleSheet(
             "QLabel{ background: transparent; font: 13px 'Segoe UI'; padding: 0 4px; color: white}");
 
@@ -59,14 +60,11 @@ private:
 
 int main(int argc, char* argv[])
 {
-    // enable dpi scale
-#if (QT_VERSION > QT_VERSION_CHECK(5, 14, 0))
-    QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-#endif
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
     QApplication app(argc, argv);
+
+    FramelessConfig::instance()->set(Global::Option::EnableBlurBehindWindow);
+    FramelessConfig::instance()->set(Global::Option::ForceNonNativeBackgroundBlur);
+    FramelessConfig::instance()->set(Global::Option::DisableLazyInitializationForMicaMaterial);
 
     // internationalization
     ftranslator.load(QLocale());

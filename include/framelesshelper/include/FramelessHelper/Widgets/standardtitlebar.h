@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +24,32 @@
 
 #pragma once
 
-#include "framelesshelperwidgets_global.h"
-#include "standardsystembutton.h"
-#include <chromepalette.h>
+#include <FramelessHelper/Widgets/framelesshelperwidgets_global.h>
+
+#if FRAMELESSHELPER_CONFIG(titlebar)
+
+#include <FramelessHelper/Core/chromepalette.h>
+#if FRAMELESSHELPER_CONFIG(system_button)
+#  include <FramelessHelper/Widgets/standardsystembutton.h>
+#endif
 #include <QtWidgets/qwidget.h>
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
-
-Q_DECLARE_LOGGING_CATEGORY(lcStandardTitleBar)
 
 class StandardTitleBarPrivate;
 
 class FRAMELESSHELPER_WIDGETS_API StandardTitleBar : public QWidget
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DECLARE_PRIVATE(StandardTitleBar)
     Q_DISABLE_COPY_MOVE(StandardTitleBar)
     Q_PROPERTY(Qt::Alignment titleLabelAlignment READ titleLabelAlignment WRITE setTitleLabelAlignment NOTIFY titleLabelAlignmentChanged FINAL)
+#if (!defined(Q_OS_MACOS) && FRAMELESSHELPER_CONFIG(system_button))
     Q_PROPERTY(StandardSystemButton* minimizeButton READ minimizeButton CONSTANT FINAL)
     Q_PROPERTY(StandardSystemButton* maximizeButton READ maximizeButton CONSTANT FINAL)
     Q_PROPERTY(StandardSystemButton* closeButton READ closeButton CONSTANT FINAL)
+#endif
     Q_PROPERTY(bool extended READ isExtended WRITE setExtended NOTIFY extendedChanged FINAL)
     Q_PROPERTY(bool hideWhenClose READ isHideWhenClose WRITE setHideWhenClose NOTIFY hideWhenCloseChanged FINAL)
     Q_PROPERTY(ChromePalette* chromePalette READ chromePalette CONSTANT FINAL)
@@ -59,9 +65,11 @@ public:
     Q_NODISCARD Qt::Alignment titleLabelAlignment() const;
     void setTitleLabelAlignment(const Qt::Alignment value);
 
+#if (!defined(Q_OS_MACOS) && FRAMELESSHELPER_CONFIG(system_button))
     Q_NODISCARD StandardSystemButton *minimizeButton() const;
     Q_NODISCARD StandardSystemButton *maximizeButton() const;
     Q_NODISCARD StandardSystemButton *closeButton() const;
+#endif // Q_OS_MACOS
 
     Q_NODISCARD bool isExtended() const;
     void setExtended(const bool value);
@@ -103,4 +111,4 @@ private:
 
 FRAMELESSHELPER_END_NAMESPACE
 
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(StandardTitleBar))
+#endif

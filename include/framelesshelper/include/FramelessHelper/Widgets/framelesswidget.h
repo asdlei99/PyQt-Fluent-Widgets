@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,18 +24,19 @@
 
 #pragma once
 
-#include "framelesshelperwidgets_global.h"
+#include <FramelessHelper/Widgets/framelesshelperwidgets_global.h>
 #include <QtWidgets/qwidget.h>
 
-FRAMELESSHELPER_BEGIN_NAMESPACE
+#if FRAMELESSHELPER_CONFIG(window)
 
-Q_DECLARE_LOGGING_CATEGORY(lcFramelessWidget)
+FRAMELESSHELPER_BEGIN_NAMESPACE
 
 class FramelessWidgetPrivate;
 
 class FRAMELESSHELPER_WIDGETS_API FramelessWidget : public QWidget
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DECLARE_PRIVATE(FramelessWidget)
     Q_DISABLE_COPY_MOVE(FramelessWidget)
     Q_PROPERTY(bool hidden READ isHidden NOTIFY hiddenChanged FINAL)
@@ -64,4 +65,4 @@ private:
 
 FRAMELESSHELPER_END_NAMESPACE
 
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(FramelessWidget))
+#endif

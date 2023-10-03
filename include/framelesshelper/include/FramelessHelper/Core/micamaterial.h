@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,23 +24,26 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
+
+#if FRAMELESSHELPER_CONFIG(mica_material)
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
-
-Q_DECLARE_LOGGING_CATEGORY(lcMicaMaterial)
 
 class MicaMaterialPrivate;
 
 class FRAMELESSHELPER_CORE_API MicaMaterial : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DISABLE_COPY_MOVE(MicaMaterial)
     Q_DECLARE_PRIVATE(MicaMaterial)
 
     Q_PROPERTY(QColor tintColor READ tintColor WRITE setTintColor NOTIFY tintColorChanged FINAL)
     Q_PROPERTY(qreal tintOpacity READ tintOpacity WRITE setTintOpacity NOTIFY tintOpacityChanged FINAL)
+    Q_PROPERTY(QColor fallbackColor READ fallbackColor WRITE setFallbackColor NOTIFY fallbackColorChanged FINAL)
     Q_PROPERTY(qreal noiseOpacity READ noiseOpacity WRITE setNoiseOpacity NOTIFY noiseOpacityChanged FINAL)
+    Q_PROPERTY(bool fallbackEnabled READ isFallbackEnabled WRITE setFallbackEnabled NOTIFY fallbackEnabledChanged FINAL)
 
 public:
     explicit MicaMaterial(QObject *parent = nullptr);
@@ -52,16 +55,30 @@ public:
     Q_NODISCARD qreal tintOpacity() const;
     void setTintOpacity(const qreal value);
 
+    Q_NODISCARD QColor fallbackColor() const;
+    void setFallbackColor(const QColor &value);
+
     Q_NODISCARD qreal noiseOpacity() const;
     void setNoiseOpacity(const qreal value);
 
+    Q_NODISCARD bool isFallbackEnabled() const;
+    void setFallbackEnabled(const bool value);
+
 public Q_SLOTS:
-    void paint(QPainter *painter, const QSize &size, const QPoint &pos);
+    void paint(QPainter *painter, const QRect &rect, const bool active = true);
+
+    [[deprecated("Use another overload instead.")]]
+    void paint(QPainter *painter, const QSize &size, const QPoint &pos, const bool active = true)
+    {
+        paint(painter, QRect{ pos, size }, active);
+    }
 
 Q_SIGNALS:
     void tintColorChanged();
     void tintOpacityChanged();
+    void fallbackColorChanged();
     void noiseOpacityChanged();
+    void fallbackEnabledChanged();
     void shouldRedraw();
 
 private:
@@ -70,4 +87,4 @@ private:
 
 FRAMELESSHELPER_END_NAMESPACE
 
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(MicaMaterial))
+#endif

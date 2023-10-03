@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,19 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
-#include "framelessmanager.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
+#include <QtCore/qtimer.h>
+#include <optional>
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
+
+struct SystemParameters;
+class FramelessManager;
 
 class FRAMELESSHELPER_CORE_API FramelessManagerPrivate : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DECLARE_PUBLIC(FramelessManager)
     Q_DISABLE_COPY_MOVE(FramelessManagerPrivate)
 
@@ -45,33 +50,27 @@ public:
     static void initializeIconFont();
     Q_NODISCARD static QFont getIconFont();
 
-    Q_NODISCARD Global::SystemTheme systemTheme() const;
-    Q_NODISCARD QColor systemAccentColor() const;
-    Q_NODISCARD QString wallpaper() const;
-    Q_NODISCARD Global::WallpaperAspectStyle wallpaperAspectStyle() const;
+    Q_SLOT void notifySystemThemeHasChangedOrNot();
+    Q_SLOT void notifyWallpaperHasChangedOrNot();
 
-    static void addWindow(const Global::SystemParameters &params);
-    static void removeWindow(const WId windowId);
+    Q_NODISCARD bool isThemeOverrided() const;
 
-    Q_INVOKABLE void notifySystemThemeHasChangedOrNot();
-    Q_INVOKABLE void notifyWallpaperHasChangedOrNot();
-
-    Q_NODISCARD static bool usePureQtImplementation();
-
-private:
     void initialize();
 
-private:
-    QPointer<FramelessManager> q_ptr = nullptr;
-    Global::SystemTheme m_systemTheme = Global::SystemTheme::Unknown;
-    QColor m_accentColor = {};
+    void doNotifySystemThemeHasChangedOrNot();
+    void doNotifyWallpaperHasChangedOrNot();
+
+    FramelessManager *q_ptr = nullptr;
+    Global::SystemTheme systemTheme = Global::SystemTheme::Unknown;
+    std::optional<Global::SystemTheme> overrideTheme = std::nullopt;
+    QColor accentColor = {};
 #ifdef Q_OS_WINDOWS
-    Global::DwmColorizationArea m_colorizationArea = Global::DwmColorizationArea::None;
+    Global::DwmColorizationArea colorizationArea = Global::DwmColorizationArea::None;
 #endif
-    QString m_wallpaper = {};
-    Global::WallpaperAspectStyle m_wallpaperAspectStyle = Global::WallpaperAspectStyle::Fill;
+    QString wallpaper = {};
+    Global::WallpaperAspectStyle wallpaperAspectStyle = Global::WallpaperAspectStyle::Fill;
+    QTimer themeTimer{};
+    QTimer wallpaperTimer{};
 };
 
 FRAMELESSHELPER_END_NAMESPACE
-
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(FramelessManagerPrivate))

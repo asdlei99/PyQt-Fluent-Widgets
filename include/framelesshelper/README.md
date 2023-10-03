@@ -8,20 +8,37 @@ Cross-platform window customization framework for Qt Widgets and Qt Quick. Suppo
 
 You can join our [Discord channel](https://discord.gg/grrM4Tmesy) to communicate with us. You can share your findings, thoughts and ideas on improving / implementing FramelessHelper functionalities on more platforms and apps!
 
-## HELP WANTED!
-
-1. The current CMake package code is not complete and still has some small issues. Need some experienced CMake developers to help me improve it!
-2. The current Linux/X11 implementation is not stable enough and still has some bugs. Need some experienced Linux developers to help me improve it!
-3. The current macOS implementation is not stable enough and still has some bugs. Need some experienced macOS developers to help me improve it!
-
-## Roadmap
+## TODO
 
 - Common: Add cross-platform customizable system menu for both Qt Widgets and Qt Quick. Also supports both light and dark theme.
 - Examples: Add QtWebEngine based demo projects for both Qt Widgets and Qt Quick. The whole user interface will be written in HTML instead of C++/QML.
 - Examples: Add demo projects that emulate the classic appearance of UWP applications. They will have a backward button on the left side of the title bar and a search box in the middle of the title bar. And maybe a side bar on the left side to switch between different pages.
-- Examples: Add demo projects that the main window is not resizable.
 - Examples: Add demo projects that have transparent background and doesn't have rectangular window frame.
+- Examples: Add demo projects based on QRhiWidget and QRhiQuickItem.
 - Feature requests are welcome!
+
+## Highlights v2.5
+
+- General: The file size of FramelessHelper binaries should be smaller than before, due to most static string literals and some internal structures are constexpr now, this change may also help to improve the general performance.
+- General: The performance should be improved quite some bit, due to most double lookups of Qt container types and unnecessary data copies are avoided now.
+- Snap Layout: The snap layout implementation has been COMPLETELY rewritten. It now behaves almost exactly the same with native windows!
+- Mica Material: FramelessHelper now prefers speed over quality. This change will lower the image quality but since the image is highly blurred anyway, there should not be any significant differences in the final user experience.
+- Build system: Improved RPATH support (UNIX systems).
+- Build system: Support modular build.
+- Routine bug fixes and internal refactorings.
+
+## Highlights v2.4
+
+- Widgets: Nested frameless windows are supported now!
+- Linux: There have been many improvements to the Linux/X11 implementation! Most of them won't be directly visible to the user, but the code quality has been greatly improved.
+- macOS: The frameless windows will now use native window frame and buttons, only the title bar itself is hidden, which also means the window will have round corners as all other native windows on macOS.
+- Mica Material: It is now possible to load wallpaper images with very large file size or resolution, for example, 4K pictures. However, if the images have larger resolution than 1920x1080, they will be shrinked to reduce memory usage, and this process will also lower the image quality and break the aspect ratio of them.
+- Mica Material: FramelessHelper will now use a seperate thread to load and apply special effects to the wallpaper image, to speed up application startup performance and avoid such process block the main thread.
+- Window management: It is now possible to close the window (the dtor is executed) and show it again without breaking the frameless functionalities.
+- Theme: It is now possible to force a desired theme instead of always respecting the system theme.
+- Build system: The [**Ninja Multi-Config**](https://cmake.org/cmake/help/latest/generator/Ninja%20Multi-Config.html) generator is fully supported now, finally!
+- Docs: There have been some improvements of the build instructions.
+- Routine bug fixes and internal refactorings.
 
 ## Highlights v2.3
 
@@ -110,39 +127,83 @@ Vogen editor using **QSynthesis** framework. Repository URL: <https://gitee.com/
 
 ## Supported Platforms
 
-- Windows: Windows 7, Windows 8, Windows 8.1, Windows 10, Windows 11 (only actively tested on Windows 10 & 11)
+- Windows: Windows Vista \~ 11 (only actively tested on Windows 10 & 11)
 - Linux: any modern Linux distros should work, but only tested on Ubuntu 20.04 and Ubuntu 22.04
-- macOS: only tested on macOS 12.3 due to lack of Apple devices
+- macOS: only tested on macOS 12 & 13 due to lack of Apple devices
 
 There are some additional restrictions for each platform, please refer to the _Platform notes_ section below.
 
 ## Build
 
 ```bash
-git clone https://github.com/wangwenx190/framelesshelper.git
-mkdir A_TEMP_DIR
-cd A_TEMP_DIR
+git clone --recursive https://github.com/wangwenx190/framelesshelper.git # "--recursive" is necessary to clone the submodules.
+mkdir build # Please change to your own build directory!
+cd build
 cmake -DCMAKE_PREFIX_PATH=<YOUR_QT_SDK_DIR_PATH> -DCMAKE_INSTALL_PREFIX=<WHERE_YOU_WANT_TO_INSTALL> -DCMAKE_BUILD_TYPE=Release -GNinja <PATH_TO_THE_REPOSITORY>
 cmake --build . --config Release --target all --parallel
-cmake --install . --config Release --strip
+cmake --install . --config Release --strip # Don't add "--strip" for MSVC/Clang-CL/Intel-CL toolchains!
+# YOUR_QT_SDK_DIR_PATH: the Qt SDK directory, something like "C:/Qt/6.5.1/msvc2019_64" or "/opt/Qt/6.5.1/gcc_64". Please change to your own path!
+# WHERE_YOU_WANT_TO_INSTALL: the install directory of FramelessHelper, something like "../install". You can ignore this setting if you don't need to install the CMake package. Please change to your own path!
+# PATH_TO_THE_REPOSITORY: the source code directory of FramelessHelper, something like "../framelesshelper". Please change to your own path!
 ```
 
-**IMPORTANT NOTE**: On Linux you need to install the _GTK3_ and _X11_ development packages first.
+You can also use `Qt6_DIR` or `Qt5_DIR` to replace `CMAKE_PREFIX_PATH`:
 
-Once the compilation and installation is done, you will be able to use the `find_package(FramelessHelper REQUIRED COMPONENTS Core Widgets Quick)` command to find and link to the FramelessHelper library. But before doing that, please make sure CMake knows where to find FramelessHelper, by passing the `CMAKE_PREFIX_PATH` variable to it. For example: `-DCMAKE_PREFIX_PATH=C:/my-cmake-packages;C:/my-toolchain;etc...`. Build FramelessHelper as a sub-directory of your CMake project is of course also supported. The supported FramelessHelper target names are `FramelessHelper::FramelessHelperCore`, `FramelessHelper::FramelessHelperWidgets` and `FramelessHelper::FramelessHelperQuick`.
+```bash
+cmake -DQt6_DIR=C:/Qt/6.5.1/msvc2019_64/lib/cmake/Qt6 [other parameters ...]
+# Or
+cmake -DQt5_DIR=C:/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5 [other parameters ...]
+```
+
+If there are any errors when cloning the submodules, try run `git submodule update --init --recursive --remote` in the project directory, that command will download & update all the submodules. If it fails again, try execute it multiple times until it finally succeeds.
+
+Once the compilation and installation is done, you will be able to use the `find_package(FramelessHelper REQUIRED COMPONENTS Core Widgets Quick)` command to find and link to the FramelessHelper library. But before doing that, please make sure CMake knows where to find FramelessHelper, by passing the `CMAKE_PREFIX_PATH` or `FramelessHelper_DIR` variable to it. For example: `-DCMAKE_PREFIX_PATH=C:/my-cmake-packages;C:/my-toolchain;etc...` or `-DFramelessHelper_DIR=C:/Projects/FramelessHelper/lib64/cmake/FramelessHelper`. Build FramelessHelper as a sub-directory of your CMake project is of course also supported. The supported FramelessHelper target names are `FramelessHelper::Core`, `FramelessHelper::Widgets` and `FramelessHelper::Quick`. Example code:
+
+```cmake
+# Find Qt:
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+# Find FramelessHelper:
+find_package(FramelessHelper REQUIRED COMPONENTS Core Widgets)
+# Create your target:
+add_executable(demo)
+# Add your source code:
+target_sources(demo PRIVATE main.cpp)
+# Link to Qt and FramelessHelper:
+target_link_libraries(demo PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    FramelessHelper::Core
+    FramelessHelper::Widgets
+)
+```
+
+If you need the syntax highlighting of FramelessHelper's Quick module, please set up the `QML_IMPORT_PATH` variable. Example code:
+
+```cmake
+# This is the path where you want FramelessHelper's Quick plugin (it only contains the QML meta
+# info and an optional dummy library, for QtCreator's QML tooling purpose, it's not the Quick
+# module) to place. Please change to your own path!
+# If you are using add_subdirectory() to include FramelessHelper directly, you can change it to
+# "${PROJECT_BINARY_DIR}/imports" instead of the install location.
+set(FRAMELESSHELPER_IMPORT_DIR "C:/packages/FramelessHelper/qml")
+list(APPEND QML_IMPORT_PATH "${FRAMELESSHELPER_IMPORT_DIR}")
+list(REMOVE_DUPLICATES QML_IMPORT_PATH)
+# Force cache refresh:
+set(QML_IMPORT_PATH ${QML_IMPORT_PATH} CACHE STRING "Qt Creator extra QML import paths" FORCE)
+```
 
 ## Use
 
 ### Qt Widgets
 
 To customize the window frame of a QWidget, you need to instantiate a `FramelessWidgetsHelper` object and then attach it to the widget's top level widget, and then `FramelessWidgetsHelper` will do all the rest work for you: the window frame will be removed automatically once it has been attached to the top level widget successfully. In theory you can instantiate multiple `FramelessWidgetsHelper` objects for a same widget, in this case there will be only one object that keeps functional, all other objects will become a wrapper of that one. But to make sure everything goes smoothly and normally, you should not do that in any case. The simplest way to instantiate a `FramelessWidgetsHelper`
-object is to call the static method `FramelessWidgetsHelper *FramelessWidgetsHelper::get(QObject *)`. It will return the handle of the previously instantiated object if any, or it will instantiate a new object if it can't find one. It's safe to call this method multiple times for a same widget, it won't instantiate any new objects if there is one already. It also does not matter when and where you call that function as long as the top level widget is the same. The internally created objects will always be parented to the top level widget. Once you get the handle of the `FramelessWidgetsHelper` object, you can call `void FramelessWidgetsHelper::setContentExtendedIntoTitleBar(true)` to let it hide the default title bar provided by the operating system. In order to make sure `FramelessWidgetsHelper` can find the correct top level widget, you should call the `FramelessWidgetsHelper *FramelessWidgetsHelper::get(QObject *)` function on a widget which has a complete parent-chain whose root parent is the top level widget. To make the frameless window draggable, you should provide a homemade title bar widget yourself, the title bar widget doesn't need to be in rectangular shape, it also doesn't need to be placed on the first row of the window. Call `void FramelessWidgetsHelper::setTitleBarWidget(QWidget *)` to let `FramelessHelper` know what's your title bar widget. By default, all the widgets in the title bar area won't be responsible to any mouse and keyboard events due to they have been intercepted by FramelessHelper. To make them recover the responsible state, you should make them visible to hit test. Call `void FramelessWidgetsHelper::setHitTestVisible(QWidget* )` to do that. You can of course call it on a widget that is not inside the title bar at all, it won't have any effect though. Due to Qt's own limitations, you need to make sure your widget has a complete parent-chain whose root parent is the top level widget. Do not ever try to delete the `FramelessWidgetsHelper` object, it may still be monitoring and controlling your widget, and Qt will delete it for you automatically. No need to worry about memory leaks.
+object is to call the static method `FramelessWidgetsHelper *FramelessWidgetsHelper::get(QObject *)`. It will return the handle of the previously instantiated object if any, or it will instantiate a new object if it can't find one. It's safe to call this method multiple times for a same widget, it won't instantiate any new objects if there is one already. It also does not matter when and where you call that function as long as the top level widget is the same. The internally created objects will always be parented to the top level widget. Once you get the handle of the `FramelessWidgetsHelper` object, you can call `void FramelessWidgetsHelper::extendsContentIntoTitleBar()` to let it hide the default title bar provided by the operating system. In order to make sure `FramelessWidgetsHelper` can find the correct top level widget, you should call the `FramelessWidgetsHelper *FramelessWidgetsHelper::get(QObject *)` function on a widget which has a complete parent-chain whose root parent is the top level widget. To make the frameless window draggable, you should provide a homemade title bar widget yourself, the title bar widget doesn't need to be in rectangular shape, it also doesn't need to be placed on the first row of the window. Call `void FramelessWidgetsHelper::setTitleBarWidget(QWidget *)` to let `FramelessHelper` know what's your title bar widget. By default, all the widgets in the title bar area won't be responsible to any mouse and keyboard events due to they have been intercepted by FramelessHelper. To make them recover the responsible state, you should make them visible to hit test. Call `void FramelessWidgetsHelper::setHitTestVisible(QWidget* )` to do that. You can of course call it on a widget that is not inside the title bar at all, it won't have any effect though. Due to Qt's own limitations, you need to make sure your widget has a complete parent-chain whose root parent is the top level widget. Do not ever try to delete the `FramelessWidgetsHelper` object, it may still be monitoring and controlling your widget, and Qt will delete it for you automatically. No need to worry about memory leaks.
 
-There are also two classes called `FramelessWidget` and `FramelessMainWindow`, they are only simple wrappers of `FramelessWidgetsHelper`, which just saves the call of the `void FramelessWidgetsHelper::setContentExtendedIntoTitleBar(true)` function for you. You can absolutely use plain `QWidget` instead.
+There are also two classes called `FramelessWidget` and `FramelessMainWindow`, they are only simple wrappers of `FramelessWidgetsHelper`, which just saves the call of the `void FramelessWidgetsHelper::extendsContentIntoTitleBar()` function for you. You can absolutely use plain `QWidget` instead.
 
 #### Code Snippet
 
-First of all, call `void FramelessHelper::Widgets::initialize()` in your `main` function in a very early stage:
+First of all, call `void FramelessHelper::Widgets::initialize()` in your `main` function in a very early stage (**MUST** before the construction of any `Q(Gui|Core)Application` objects):
 
 ```cpp
 int main(int, char **)
@@ -158,7 +219,7 @@ Then hide the standard title bar provided by the OS:
 MyWidget::MyWidget(QWidget *parent) : QWidget(parent)
 {
     // You should do this early enough.
-    FramelessWidgetsHelper::get(this)->setContentExtendedIntoTitleBar(true);
+    FramelessWidgetsHelper::get(this)->extendsContentIntoTitleBar();
     // ...
 }
 ```
@@ -193,7 +254,7 @@ void MyWidget::myFunction2()
 
 #### Code Snippet
 
-First of all, you should call `void FramelessHelper::Quick::initialize()` in your `main` function in a very early stage:
+First of all, you should call `void FramelessHelper::Quick::initialize()` in your `main` function in a very early stage (**MUST** before the construction of any `Q(Gui|Core)Application` objects):
 
 ```cpp
 int main(int, char **)
@@ -289,8 +350,6 @@ Window {
 }
 ```
 
-**IMPORTANT NOTE for all applications**: Once you called `QWidget::close()` or `Q(Quick)Window::close()`, Qt will release all the resources of the corresponding widget/window, and thus FramelessHelper's custom event handler will also be removed from them at the same time. However, this will make the title bar become unresponsible if you re-open the widget/window. The current workaround for this issue is to hide the widget/window instead of closing it, if you are going to show it again later. But if you have no plan to show the widget/window again after it has been closed, you don't need to do anything to workaround this issue.
-
 ### More
 
 Please refer to the demo projects to see more detailed usages: [examples](./examples/)
@@ -326,12 +385,7 @@ Please refer to the demo projects to see more detailed usages: [examples](./exam
 - Due to there are many sub-versions of Windows 10, it's highly recommended to use the latest version of Windows 10, at least **no older than Windows 10 1809**. If you try to use this framework on some very old Windows 10 versions such as 1507 or 1607, there may be some compatibility issues. Using this framework on Windows 7 is also supported but not recommended. To get the most stable behavior and the best appearance, you should use it on the latest version of Windows 10 or Windows 11.
 - To make the snap layout work as expected, there are some additional rules for your homemade system buttons to follow:
   - **Add a manifest file to your application. In the manifest file, you need to claim your application supports Windows 11 explicitly. This step is VERY VERY IMPORTANT. Without this step, the snap layout feature can't be enabled.**
-  - Make sure there are two public invokable functions (slot functions are always invokable): `void setHovered(bool)` and `void setPressed(bool)`. These two functions will be invoked by FramelessHelper when the button is being hovered or pressed. You should change the button's visual state inside these functions. If you need to show tooltips, you'll have to do it manually in these functions.
-  - Make sure there's a public signal: `void clicked()`. When the button is being clicked, that signal will be triggered by FramelessHelper. You should connect your event handler to that signal.
-  - For Qt Quick applications, for the C++ side, you need to inherit your button from the `QQuickAbstractButton` class, for the QML side, you need to inherit your button from the `Button` type (from the `QtQuick.Controls.Basic` module). They have all the invokable functions and signals we need, so no more extra work is needed.
-  - Don't forget to call `setSystemButton()` for each button to let FramelessHelper know which is the minimize/maximize/close button.
-  - System buttons will not be able to receive any actual mouse and keyboard events so there's no need to handle these events inside these buttons. That's also why we need to set the button's visual state manually.
-  - I know this is making everything complicated but unfortunately we can't avoid this mess if we need to support the snap layout feature. Snap layout is really only designed for the original standard window frame, so if we want to forcely support it without a standard window frame, many black magic will be needed.
+  - Call `setSystemButton()` for each button (it can be any *QWidget* or *QQuickItem*) to let FramelessHelper know which is the minimize/maximize/close button.
 
 ### Linux
 
@@ -340,8 +394,6 @@ Please refer to the demo projects to see more detailed usages: [examples](./exam
 
 ### macOS
 
-- The frameless windows will appear in square corners instead of round corners (Qt Widgets applications only).
-- The resize area is inside of the window.
 - Some users reported that the window is not resizable on some old macOS versions.
 
 ## FAQs
@@ -362,12 +414,24 @@ First of all, it's a Qt issue, not caused by FramelessHelper. And it should not 
 
 Short answer: it's impossible. Full explaination: of course we can use the same technique we use on Win10 to remove the whole top part of the window and preserve the other three frame borders at the same time, but on Win10 we can bring the top border back, either by doing some black magic in the `WM_PAINT` handler or draw a thin frame border manually ourself, however, it's impossible to do this on Win7. I've tried it on Win7 already and sadly the result is the `WM_PAINT` trick won't work on Win7, and we also can't draw a frame border which looks very similar to the original one (a semi-transparent rectangle, blended with system's accent color and the visual content behind the window, also with some blur effect applied). But it seems Google Chrome/Microsoft Edge's installer have achieved what we wanted to do, how? Well, their installer is open source and I've read it's code already. They achieve that by overlapping two windows, one normal window on the bottom, another border-less window on the top to cover the bottom window's title bar. They draw their homemade title bar on the border-less window and use it to emulate the standard title bar's behavior. The original title bar provided by the system is still there, but it can't be seen by anyone just because it's covered by another window. I admit it's a good solution in such cases but for our library it's not appropriate because the code complexity will blow up.
 
+## Special Thanks
+
+*Ordered by first contribution time (it may not be very accurate, sorry)*
+
+- [Yuhang Zhao](https://github.com/wangwenx190): Help me create this project. This project is mainly based on his code.
+- [Julien](https://github.com/JulienMaille): Help me test this library on many various environments and help me fix the bugs we found. Contributed many code to improve this library. The MainWindow example is mostly based on his code.
+- [Altair Wei](https://github.com/altairwei): Help me fix quite some small bugs and give me many important suggestions, the 2.x version is also inspired by his idea during our discussions.
+- [Kenji Mouri](https://github.com/MouriNaruto): Give me a lot of help on Win32 native developing.
+- [Dylan Liu](https://github.com/mentalfl0w): Help me improve the build process on macOS.
+- [SineStriker](https://github.com/SineStriker): Spent over a whole week helping me improve the Snap Layout implementation, fixing potential bugs and also give me a lot of professional and useful suggestions. Without his great effort, the new implementation may never come.
+- And also thanks to other contributors not listed here! Without their valuable help, this library wouldn't have such good quality and user experience!
+
 ## License
 
 ```text
 MIT License
 
-Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

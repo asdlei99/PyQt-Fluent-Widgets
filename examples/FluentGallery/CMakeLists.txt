@@ -9,21 +9,20 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Widgets REQUIRED)
 
-# -----------------------------------------------------------------------------
 file(GLOB_RECURSE inc_files ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file(GLOB_RECURSE src_files ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 # add resource
 SET(RCC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resource/gallery.qrc)
-qt5_add_resources(RCC_SOURCES ${RCC_FILES})
+qt_add_resources(RCC_SOURCES ${RCC_FILES})
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-add_executable(${DEMO_NAME} ${src_files} ${inc_files} ${RCC_SOURCES} main.cpp)
+add_executable(${DEMO_NAME} ${src_files} ${inc_files} ${RCC_SOURCES} main.cpp icon.rc)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Widgets QFluentWidgets FramelessHelperCore FramelessHelperWidgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Widgets QFluentWidgets FramelessHelperCore64 FramelessHelperWidgets64)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE

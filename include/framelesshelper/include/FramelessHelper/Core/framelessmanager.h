@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,28 +24,25 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
 
-Q_DECLARE_LOGGING_CATEGORY(lcFramelessManager)
-
+struct SystemParameters;
 class FramelessManagerPrivate;
 
 class FRAMELESSHELPER_CORE_API FramelessManager : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DECLARE_PRIVATE(FramelessManager)
     Q_DISABLE_COPY_MOVE(FramelessManager)
-    Q_PROPERTY(Global::SystemTheme systemTheme READ systemTheme NOTIFY systemThemeChanged FINAL)
+    Q_PROPERTY(Global::SystemTheme systemTheme READ systemTheme WRITE setOverrideTheme NOTIFY systemThemeChanged FINAL)
     Q_PROPERTY(QColor systemAccentColor READ systemAccentColor NOTIFY systemThemeChanged FINAL)
     Q_PROPERTY(QString wallpaper READ wallpaper NOTIFY wallpaperChanged FINAL)
     Q_PROPERTY(Global::WallpaperAspectStyle wallpaperAspectStyle READ wallpaperAspectStyle NOTIFY wallpaperChanged FINAL)
 
 public:
-    explicit FramelessManager(QObject *parent = nullptr);
-    ~FramelessManager() override;
-
     Q_NODISCARD static FramelessManager *instance();
 
     Q_NODISCARD Global::SystemTheme systemTheme() const;
@@ -54,17 +51,20 @@ public:
     Q_NODISCARD Global::WallpaperAspectStyle wallpaperAspectStyle() const;
 
 public Q_SLOTS:
-    void addWindow(const Global::SystemParameters &params);
+    void addWindow(const SystemParameters *params);
     void removeWindow(const WId windowId);
+    void setOverrideTheme(const Global::SystemTheme theme);
 
 Q_SIGNALS:
     void systemThemeChanged();
     void wallpaperChanged();
 
 private:
+    explicit FramelessManager(QObject *parent = nullptr);
+    ~FramelessManager() override;
+
+private:
     QScopedPointer<FramelessManagerPrivate> d_ptr;
 };
 
 FRAMELESSHELPER_END_NAMESPACE
-
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(FramelessManager))

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <framelesshelpercore_global.h>
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
 
 #ifndef FRAMELESSHELPER_WIDGETS_API
-#  ifdef FRAMELESSHELPER_WIDGETS_STATIC
+#  if FRAMELESSHELPER_CONFIG(static_build)
 #    define FRAMELESSHELPER_WIDGETS_API
 #  else
 #    ifdef FRAMELESSHELPER_WIDGETS_LIBRARY
@@ -40,12 +40,13 @@
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
 
-Q_DECLARE_LOGGING_CATEGORY(lcWidgetsGlobal)
+FRAMELESSHELPER_WIDGETS_API void FramelessHelperWidgetsInitialize();
+FRAMELESSHELPER_WIDGETS_API void FramelessHelperWidgetsUninitialize();
 
 namespace FramelessHelper::Widgets
 {
-FRAMELESSHELPER_WIDGETS_API void initialize();
-FRAMELESSHELPER_WIDGETS_API void uninitialize();
+inline void initialize() { FramelessHelperWidgetsInitialize(); }
+inline void uninitialize() { FramelessHelperWidgetsUninitialize(); }
 } // namespace FramelessHelper::Widgets
 
 FRAMELESSHELPER_END_NAMESPACE

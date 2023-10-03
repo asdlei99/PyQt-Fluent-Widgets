@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,20 +24,17 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
-#include <QtCore/qvariant.h>
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
 
 class FRAMELESSHELPER_CORE_API FramelessConfig : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DISABLE_COPY_MOVE(FramelessConfig)
 
 public:
-    explicit FramelessConfig(QObject *parent = nullptr);
-    ~FramelessConfig() override;
-
     Q_NODISCARD static FramelessConfig *instance();
 
     void reload(const bool force = false);
@@ -48,19 +45,9 @@ public:
     static void setLoadFromEnvironmentVariablesDisabled(const bool on = true);
     static void setLoadFromConfigurationFileDisabled(const bool on = true);
 
-    Q_NODISCARD QVariant setInternal(const QString &key, const QVariant &value);
-    Q_NODISCARD QVariant getInternal(const QString &key) const;
-    template<typename T>
-    Q_NODISCARD std::optional<T> getInternal(const QString &key) const
-    {
-        const QVariant var = getInternal(key);
-        if (var.isValid()) {
-            return qvariant_cast<T>(var);
-        }
-        return std::nullopt;
-    }
+private:
+    explicit FramelessConfig(QObject *parent = nullptr);
+    ~FramelessConfig() override;
 };
 
 FRAMELESSHELPER_END_NAMESPACE
-
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(FramelessConfig))

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,18 @@
  */
 
 #include "utils.h"
+
+#ifdef Q_OS_MACOS
+
 #include "framelessmanager.h"
 #include "framelessmanager_p.h"
 #include "framelessconfig_p.h"
+#include "framelesshelpercore_global_p.h"
+#include <functional>
+#include <memory>
 #include <QtCore/qhash.h>
-#include <QtCore/qmutex.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qloggingcategory.h>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
 #  include <QtCore/qoperatingsystemversion.h>
 #else
@@ -39,8 +45,8 @@
 #include <AppKit/AppKit.h>
 
 QT_BEGIN_NAMESPACE
-[[nodiscard]] Q_CORE_EXPORT bool qt_mac_applicationIsInDarkMode(); // Since 5.12
-[[nodiscard]] Q_GUI_EXPORT QColor qt_mac_toQColor(const NSColor *color); // Since 5.8
+[[nodiscard]] extern Q_CORE_EXPORT bool qt_mac_applicationIsInDarkMode(); // Since 5.12
+[[nodiscard]] extern Q_GUI_EXPORT QColor qt_mac_toQColor(const NSColor *color); // Since 5.8
 QT_END_NAMESPACE
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
@@ -64,18 +70,17 @@ FRAMELESSHELPER_END_NAMESPACE
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(lcUtilsMac, "wangwenx190.framelesshelper.core.utils.mac")
-
-#ifdef FRAMELESSHELPER_CORE_NO_DEBUG_OUTPUT
-#  define INFO QT_NO_QDEBUG_MACRO()
-#  define DEBUG QT_NO_QDEBUG_MACRO()
-#  define WARNING QT_NO_QDEBUG_MACRO()
-#  define CRITICAL QT_NO_QDEBUG_MACRO()
-#else
+#if FRAMELESSHELPER_CONFIG(debug_output)
+[[maybe_unused]] static Q_LOGGING_CATEGORY(lcUtilsMac, "wangwenx190.framelesshelper.core.utils.mac")
 #  define INFO qCInfo(lcUtilsMac)
 #  define DEBUG qCDebug(lcUtilsMac)
 #  define WARNING qCWarning(lcUtilsMac)
 #  define CRITICAL qCCritical(lcUtilsMac)
+#else
+#  define INFO QT_NO_QDEBUG_MACRO()
+#  define DEBUG QT_NO_QDEBUG_MACRO()
+#  define WARNING QT_NO_QDEBUG_MACRO()
+#  define CRITICAL QT_NO_QDEBUG_MACRO()
 #endif
 
 using namespace Global;
@@ -135,7 +140,7 @@ public:
         }
         object = obj;
         keyPath = key;
-        callback.reset(new Callback(cb));
+        callback = std::make_unique<Callback>(cb);
         addObserver(options);
     }
 
@@ -151,20 +156,20 @@ public:
         if (!object) {
             return;
         }
-        [object removeObserver:observer forKeyPath:keyPath context:callback.data()];
+        [object removeObserver:observer forKeyPath:keyPath context:callback.get()];
         object = nil;
     }
 
 private:
     void addObserver(const NSKeyValueObservingOptions options)
     {
-        [object addObserver:observer forKeyPath:keyPath options:options context:callback.data()];
+        [object addObserver:observer forKeyPath:keyPath options:options context:callback.get()];
     }
 
 private:
     NSObject *object = nil;
     NSString *keyPath = nil;
-    QScopedPointer<Callback> callback;
+    std::unique_ptr<Callback> callback = nil;
 
     static inline MyKeyValueObserver *observer = [[MyKeyValueObserver alloc] init];
 };
@@ -186,16 +191,16 @@ public:
         static const bool isMojave = (QSysInfo::macVersion() > QSysInfo::MV_SIERRA);
 #endif
         if (isMojave) {
-            m_appearanceObserver.reset(new MacOSKeyValueObserver(NSApp, @"effectiveAppearance", [](){
+            m_appearanceObserver = std::make_unique<MacOSKeyValueObserver>(NSApp, @"effectiveAppearance", [](){
                 QT_WARNING_PUSH
                 QT_WARNING_DISABLE_DEPRECATED
                 NSAppearance.currentAppearance = NSApp.effectiveAppearance; // FIXME: use latest API.
                 QT_WARNING_POP
                 MacOSThemeObserver::notifySystemThemeChange();
-            }));
+            });
         }
-        m_systemColorObserver.reset(new MacOSNotificationObserver(nil, NSSystemColorsDidChangeNotification,
-            [](){ MacOSThemeObserver::notifySystemThemeChange(); }));
+        m_systemColorObserver = std::make_unique<MacOSNotificationObserver>(nil, NSSystemColorsDidChangeNotification,
+            [](){ MacOSThemeObserver::notifySystemThemeChange(); });
     }
 
     ~MacOSThemeObserver() = default;
@@ -211,13 +216,14 @@ public:
     }
 
 private:
-    QScopedPointer<MacOSNotificationObserver> m_systemColorObserver;
-    QScopedPointer<MacOSKeyValueObserver> m_appearanceObserver;
+    std::unique_ptr<MacOSNotificationObserver> m_systemColorObserver = nil;
+    std::unique_ptr<MacOSKeyValueObserver> m_appearanceObserver = nil;
 };
 
 class NSWindowProxy : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DISABLE_COPY_MOVE(NSWindowProxy)
 
 public:
@@ -232,7 +238,6 @@ public:
         qwindow = qtWindow;
         nswindow = macWindow;
         instances.insert(macWindow, this);
-        saveState();
         if (!windowClass) {
             windowClass = [nswindow class];
             Q_ASSERT(windowClass);
@@ -244,41 +249,12 @@ public:
     {
         instances.remove(nswindow);
         if (instances.count() <= 0) {
-            restoreImplementations();
             windowClass = nil;
         }
-        restoreState();
         nswindow = nil;
     }
 
 public Q_SLOTS:
-    void saveState()
-    {
-        oldStyleMask = nswindow.styleMask;
-        oldTitlebarAppearsTransparent = nswindow.titlebarAppearsTransparent;
-        oldTitleVisibility = nswindow.titleVisibility;
-        oldHasShadow = nswindow.hasShadow;
-        oldShowsToolbarButton = nswindow.showsToolbarButton;
-        oldMovableByWindowBackground = nswindow.movableByWindowBackground;
-        oldMovable = nswindow.movable;
-        oldCloseButtonVisible = ![nswindow standardWindowButton:NSWindowCloseButton].hidden;
-        oldMiniaturizeButtonVisible = ![nswindow standardWindowButton:NSWindowMiniaturizeButton].hidden;
-        oldZoomButtonVisible = ![nswindow standardWindowButton:NSWindowZoomButton].hidden;
-    }
-
-    void restoreState()
-    {
-        nswindow.styleMask = oldStyleMask;
-        nswindow.titlebarAppearsTransparent = oldTitlebarAppearsTransparent;
-        nswindow.titleVisibility = oldTitleVisibility;
-        nswindow.hasShadow = oldHasShadow;
-        nswindow.showsToolbarButton = oldShowsToolbarButton;
-        nswindow.movableByWindowBackground = oldMovableByWindowBackground;
-        nswindow.movable = oldMovable;
-        [nswindow standardWindowButton:NSWindowCloseButton].hidden = !oldCloseButtonVisible;
-        [nswindow standardWindowButton:NSWindowMiniaturizeButton].hidden = !oldMiniaturizeButtonVisible;
-        [nswindow standardWindowButton:NSWindowZoomButton].hidden = !oldZoomButtonVisible;
-    }
 
     void replaceImplementations()
     {
@@ -292,6 +268,7 @@ public Q_SLOTS:
         oldSetTitlebarAppearsTransparent = reinterpret_cast<setTitlebarAppearsTransparentPtr>(method_setImplementation(method, reinterpret_cast<IMP>(setTitlebarAppearsTransparent)));
         Q_ASSERT(oldSetTitlebarAppearsTransparent);
 
+#if 0
         method = class_getInstanceMethod(windowClass, @selector(canBecomeKeyWindow));
         Q_ASSERT(method);
         oldCanBecomeKeyWindow = reinterpret_cast<canBecomeKeyWindowPtr>(method_setImplementation(method, reinterpret_cast<IMP>(canBecomeKeyWindow)));
@@ -301,6 +278,7 @@ public Q_SLOTS:
         Q_ASSERT(method);
         oldCanBecomeMainWindow = reinterpret_cast<canBecomeMainWindowPtr>(method_setImplementation(method, reinterpret_cast<IMP>(canBecomeMainWindow)));
         Q_ASSERT(oldCanBecomeMainWindow);
+#endif
 
         method = class_getInstanceMethod(windowClass, @selector(sendEvent:));
         Q_ASSERT(method);
@@ -320,6 +298,7 @@ public Q_SLOTS:
         method_setImplementation(method, reinterpret_cast<IMP>(oldSetTitlebarAppearsTransparent));
         oldSetTitlebarAppearsTransparent = nil;
 
+#if 0
         method = class_getInstanceMethod(windowClass, @selector(canBecomeKeyWindow));
         Q_ASSERT(method);
         method_setImplementation(method, reinterpret_cast<IMP>(oldCanBecomeKeyWindow));
@@ -329,6 +308,7 @@ public Q_SLOTS:
         Q_ASSERT(method);
         method_setImplementation(method, reinterpret_cast<IMP>(oldCanBecomeMainWindow));
         oldCanBecomeMainWindow = nil;
+#endif
 
         method = class_getInstanceMethod(windowClass, @selector(sendEvent:));
         Q_ASSERT(method);
@@ -356,9 +336,12 @@ public Q_SLOTS:
         nswindow.showsToolbarButton = NO;
         nswindow.movableByWindowBackground = NO;
         nswindow.movable = NO;
+        // For some unknown reason, we don't need the following hack in Qt versions below or equal to 6.2.4.
+#if (QT_VERSION > QT_VERSION_CHECK(6, 2, 4))
         [nswindow standardWindowButton:NSWindowCloseButton].hidden = (visible ? NO : YES);
         [nswindow standardWindowButton:NSWindowMiniaturizeButton].hidden = (visible ? NO : YES);
         [nswindow standardWindowButton:NSWindowZoomButton].hidden = (visible ? NO : YES);
+#endif
     }
 
     void setBlurBehindWindowEnabled(const bool enable)
@@ -425,7 +408,7 @@ public Q_SLOTS:
             return;
         }
         const auto view = static_cast<NSVisualEffectView *>(blurEffect);
-        if (Utils::shouldAppsUseDarkMode()) {
+        if (FramelessManager::instance()->systemTheme() == SystemTheme::Dark) {
             view.appearance = [NSAppearance appearanceNamed:@"NSAppearanceNameVibrantDark"];
         } else {
             view.appearance = [NSAppearance appearanceNamed:@"NSAppearanceNameVibrantLight"];
@@ -487,35 +470,27 @@ private:
             oldSendEvent(obj, sel, event);
         }
 
+#if 0
         const auto nswindow = reinterpret_cast<NSWindow *>(obj);
-        if (!instances.contains(nswindow)) {
+        const auto it = instances.find(nswindow);
+        if (it == instances.end()) {
             return;
         }
 
-        NSWindowProxy * const proxy = instances[nswindow];
+        NSWindowProxy * const proxy = it.value();
         if (event.type == NSEventTypeLeftMouseDown) {
             proxy->lastMouseDownEvent = event;
             QCoreApplication::processEvents();
             proxy->lastMouseDownEvent = nil;
         }
+#endif
     }
 
 private:
     QWindow *qwindow = nil;
     NSWindow *nswindow = nil;
-    NSEvent *lastMouseDownEvent = nil;
+    //NSEvent *lastMouseDownEvent = nil;
     NSView *blurEffect = nil;
-
-    NSWindowStyleMask oldStyleMask = 0;
-    BOOL oldTitlebarAppearsTransparent = NO;
-    BOOL oldHasShadow = NO;
-    BOOL oldShowsToolbarButton = NO;
-    BOOL oldMovableByWindowBackground = NO;
-    BOOL oldMovable = NO;
-    BOOL oldCloseButtonVisible = NO;
-    BOOL oldMiniaturizeButtonVisible = NO;
-    BOOL oldZoomButtonVisible = NO;
-    NSWindowTitleVisibility oldTitleVisibility = NSWindowTitleVisible;
 
     QMetaObject::Connection widthChangeConnection = {};
     QMetaObject::Connection heightChangeConnection = {};
@@ -541,11 +516,7 @@ private:
     static inline sendEventPtr oldSendEvent = nil;
 };
 
-struct MacUtilsData
-{
-    QMutex mutex;
-    QHash<WId, NSWindowProxy *> hash = {};
-};
+using MacUtilsData = QHash<WId, NSWindowProxy *>;
 
 Q_GLOBAL_STATIC(MacUtilsData, g_macUtilsData);
 
@@ -563,14 +534,30 @@ Q_GLOBAL_STATIC(MacUtilsData, g_macUtilsData);
     return [nsview window];
 }
 
+static inline void cleanupProxy()
+{
+    if (g_macUtilsData()->isEmpty()) {
+        return;
+    }
+    const auto &data = *g_macUtilsData();
+    for (auto &&proxy : std::as_const(data)) {
+        Q_ASSERT(proxy);
+        if (!proxy) {
+            continue;
+        }
+        delete proxy;
+    }
+    g_macUtilsData()->clear();
+}
+
 [[nodiscard]] static inline NSWindowProxy *ensureWindowProxy(const WId windowId)
 {
     Q_ASSERT(windowId);
     if (!windowId) {
         return nil;
     }
-    const QMutexLocker locker(&g_macUtilsData()->mutex);
-    if (!g_macUtilsData()->hash.contains(windowId)) {
+    auto it = g_macUtilsData()->find(windowId);
+    if (it == g_macUtilsData()->end()) {
         QWindow * const qwindow = Utils::findWindow(windowId);
         Q_ASSERT(qwindow);
         if (!qwindow) {
@@ -582,33 +569,14 @@ Q_GLOBAL_STATIC(MacUtilsData, g_macUtilsData);
             return nil;
         }
         const auto proxy = new NSWindowProxy(qwindow, nswindow);
-        g_macUtilsData()->hash.insert(windowId, proxy);
+        it = g_macUtilsData()->insert(windowId, proxy);
     }
-    static const auto hook = []() -> int {
-        FramelessHelper::Core::registerUninitializeHook([](){
-            const QMutexLocker locker(&g_macUtilsData()->mutex);
-            if (g_macUtilsData()->hash.isEmpty()) {
-                return;
-            }
-            for (auto &&proxy : qAsConst(g_macUtilsData()->hash)) {
-                Q_ASSERT(proxy);
-                if (!proxy) {
-                    continue;
-                }
-                delete proxy;
-            }
-            g_macUtilsData()->hash.clear();
-        });
-        return 0;
-    }();
-    Q_UNUSED(hook);
-    return g_macUtilsData()->hash.value(windowId);
-}
-
-SystemTheme Utils::getSystemTheme()
-{
-    // ### TODO: how to detect high contrast mode on macOS?
-    return (shouldAppsUseDarkMode() ? SystemTheme::Dark : SystemTheme::Light);
+    static bool cleanerInstalled = false;
+    if (!cleanerInstalled) {
+        cleanerInstalled = true;
+        qAddPostRoutine(cleanupProxy);
+    }
+    return it.value();
 }
 
 void Utils::setSystemTitleBarVisible(const WId windowId, const bool visible)
@@ -621,20 +589,20 @@ void Utils::setSystemTitleBarVisible(const WId windowId, const bool visible)
     proxy->setSystemTitleBarVisible(visible);
 }
 
-void Utils::startSystemMove(QWindow *window, const QPoint &globalPos)
+bool Utils::startSystemMove(QWindow *window, const QPoint &globalPos)
 {
     Q_ASSERT(window);
     if (!window) {
-        return;
+        return false;
     }
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
     Q_UNUSED(globalPos);
-    window->startSystemMove();
+    return window->startSystemMove();
 #else
     const NSWindow * const nswindow = mac_getNSWindow(window->winId());
     Q_ASSERT(nswindow);
     if (!nswindow) {
-        return;
+        return false;
     }
     const CGEventRef clickDown = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown,
                          CGPointMake(globalPos.x(), globalPos.y()), kCGMouseButtonLeft);
@@ -642,33 +610,35 @@ void Utils::startSystemMove(QWindow *window, const QPoint &globalPos)
     Q_ASSERT(nsevent);
     if (!nsevent) {
         CFRelease(clickDown);
-        return;
+        return false;
     }
     [nswindow performWindowDragWithEvent:nsevent];
     CFRelease(clickDown);
+    return true;
 #endif
 }
 
-void Utils::startSystemResize(QWindow *window, const Qt::Edges edges, const QPoint &globalPos)
+bool Utils::startSystemResize(QWindow *window, const Qt::Edges edges, const QPoint &globalPos)
 {
     Q_ASSERT(window);
     if (!window) {
-        return;
+        return false;
     }
     if (edges == Qt::Edges{}) {
-        return;
+        return false;
     }
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
     Q_UNUSED(globalPos);
     // Actually Qt doesn't implement this function, it will do nothing and always returns false.
-    window->startSystemResize(edges);
+    return window->startSystemResize(edges);
 #else
     // ### TODO
     Q_UNUSED(globalPos);
+    return false;
 #endif
 }
 
-QColor Utils::getControlsAccentColor()
+QColor Utils::getAccentColor_macos()
 {
     return qt_mac_toQColor([NSColor controlAccentColor]);
 }
@@ -758,10 +728,11 @@ bool Utils::isBlurBehindWindowSupported()
     return result;
 }
 
-void Utils::registerThemeChangeNotification()
+bool Utils::registerThemeChangeNotification()
 {
-    static MacOSThemeObserver observer;
+    volatile static MacOSThemeObserver observer;
     Q_UNUSED(observer);
+    return true;
 }
 
 void Utils::removeWindowProxy(const WId windowId)
@@ -770,23 +741,25 @@ void Utils::removeWindowProxy(const WId windowId)
     if (!windowId) {
         return;
     }
-    const QMutexLocker locker(&g_macUtilsData()->mutex);
-    if (!g_macUtilsData()->hash.contains(windowId)) {
+    const auto it = g_macUtilsData()->constFind(windowId);
+    if (it == g_macUtilsData()->constEnd()) {
         return;
     }
-    if (const auto proxy = g_macUtilsData()->hash.value(windowId)) {
+    if (const auto proxy = it.value()) {
         // We'll restore everything to default in the destructor,
         // so no need to do it manually here.
         delete proxy;
     }
-    g_macUtilsData()->hash.remove(windowId);
+    g_macUtilsData()->erase(it);
 }
 
 QColor Utils::getFrameBorderColor(const bool active)
 {
-    return (active ? getControlsAccentColor() : kDefaultDarkGrayColor);
+    return (active ? getAccentColor() : kDefaultDarkGrayColor);
 }
 
 FRAMELESSHELPER_END_NAMESPACE
 
 #include "utils_mac.moc"
+
+#endif // Q_OS_MACOS

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,19 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
-#include "windowborderpainter.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
+#include <optional>
+
+#if FRAMELESSHELPER_CONFIG(border_painter)
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
+
+class WindowBorderPainter;
 
 class FRAMELESSHELPER_CORE_API WindowBorderPainterPrivate : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DECLARE_PUBLIC(WindowBorderPainter)
     Q_DISABLE_COPY_MOVE(WindowBorderPainterPrivate)
 
@@ -42,24 +47,13 @@ public:
     Q_NODISCARD static WindowBorderPainterPrivate *get(WindowBorderPainter *q);
     Q_NODISCARD static const WindowBorderPainterPrivate *get(const WindowBorderPainter *q);
 
-    Q_NODISCARD static int getNativeBorderThickness();
-    Q_NODISCARD static QColor getNativeBorderColor(const bool active);
-    Q_NODISCARD static Global::WindowEdges getNativeBorderEdges();
-
-public Q_SLOTS:
-    void paint(QPainter *painter, const QSize &size, const bool active) const;
-
-private:
-    void initialize();
-
-private:
-    QPointer<WindowBorderPainter> q_ptr = nullptr;
-    std::optional<int> m_thickness = std::nullopt;
-    std::optional<Global::WindowEdges> m_edges = std::nullopt;
-    std::optional<QColor> m_activeColor = std::nullopt;
-    std::optional<QColor> m_inactiveColor = std::nullopt;
+    WindowBorderPainter *q_ptr = nullptr;
+    std::optional<int> thickness = std::nullopt;
+    std::optional<Global::WindowEdges> edges = std::nullopt;
+    std::optional<QColor> activeColor = std::nullopt;
+    std::optional<QColor> inactiveColor = std::nullopt;
 };
 
 FRAMELESSHELPER_END_NAMESPACE
 
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(WindowBorderPainterPrivate))
+#endif

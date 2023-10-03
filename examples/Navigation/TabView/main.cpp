@@ -4,6 +4,7 @@
 #include <QFileSystemModel>
 #include <QFluentWidgets/Components/Widgets/IconWidget.h>
 #include <QFluentWidgets/Components/Widgets/TabView.h>
+#include <QFluentWidgets/Components/Widgets/Label.h>
 #include <QFluentWidgets/Window/FluentWindow.h>
 #include <QHBoxLayout>
 #include <QWidget>
@@ -18,13 +19,13 @@ class SubInterface : public QFrame
 public:
     explicit SubInterface(const QString& text, QWidget* parent = nullptr) : QFrame(parent)
     {
-        auto label = new QLabel(text, this);
+        auto label = new SubtitleLabel(text, this);
         auto layout = new QHBoxLayout(this);
 
+        ::setFont(label, 24);
         label->setAlignment(Qt::AlignCenter);
         layout->addWidget(label, 1, Qt::AlignCenter);
 
-        ::setFont(label, 24);
         setObjectName(text);
     }
 };
@@ -41,7 +42,7 @@ public:
         : QFrame(parent)
     {
         auto iconWidget = new IconWidget(icon, this);
-        auto label = new QLabel(text, this);
+        auto label = new SubtitleLabel(text, this);
         auto layout = new QVBoxLayout(this);
 
         iconWidget->setFixedSize(120, 120);
@@ -95,7 +96,6 @@ public:
 
         hBoxLayout_->insertWidget(5, tabBar, 1);
         hBoxLayout_->setStretch(6, 0);
-
 
         // add avatar
         auto avatar = new AvatarWidget("Resource/images/shoko.png", this);
@@ -189,13 +189,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-    // enable dpi scale
-#if (QT_VERSION > QT_VERSION_CHECK(5, 14, 0))
-    QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-#endif
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
     QApplication app(argc, argv);
 
     Demo w;

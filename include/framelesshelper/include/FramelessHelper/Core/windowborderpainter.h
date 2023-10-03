@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,17 +24,18 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
+
+#if FRAMELESSHELPER_CONFIG(border_painter)
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
-
-Q_DECLARE_LOGGING_CATEGORY(lcWindowBorderPainter)
 
 class WindowBorderPainterPrivate;
 
 class FRAMELESSHELPER_CORE_API WindowBorderPainter : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DISABLE_COPY_MOVE(WindowBorderPainter)
     Q_DECLARE_PRIVATE(WindowBorderPainter)
 
@@ -63,7 +64,7 @@ public:
     Q_NODISCARD QColor nativeInactiveColor() const;
 
 public Q_SLOTS:
-    void paint(QPainter *painter, const QSize &size, const bool active) const;
+    void paint(QPainter *painter, const QSize &size, const bool active);
     void setThickness(const int value);
     void setEdges(const Global::WindowEdges value);
     void setActiveColor(const QColor &value);
@@ -83,4 +84,4 @@ private:
 
 FRAMELESSHELPER_END_NAMESPACE
 
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(WindowBorderPainter))
+#endif

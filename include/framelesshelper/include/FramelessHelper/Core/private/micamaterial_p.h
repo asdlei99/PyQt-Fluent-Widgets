@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,15 +24,19 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
-#include "micamaterial.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
 #include <QtGui/qbrush.h>
 
+#if FRAMELESSHELPER_CONFIG(mica_material)
+
 FRAMELESSHELPER_BEGIN_NAMESPACE
+
+class MicaMaterial;
 
 class FRAMELESSHELPER_CORE_API MicaMaterialPrivate : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DISABLE_COPY_MOVE(MicaMaterialPrivate)
     Q_DECLARE_PUBLIC(MicaMaterial)
 
@@ -43,24 +47,30 @@ public:
     Q_NODISCARD static MicaMaterialPrivate *get(MicaMaterial *q);
     Q_NODISCARD static const MicaMaterialPrivate *get(const MicaMaterial *q);
 
-public Q_SLOTS:
-    void maybeGenerateBlurredWallpaper(const bool force = false);
-    void updateMaterialBrush();
-    void paint(QPainter *painter, const QSize &size, const QPoint &pos);
+    Q_NODISCARD static QColor systemFallbackColor();
 
-private:
+    Q_NODISCARD QPoint mapToWallpaper(const QPoint &pos) const;
+    Q_NODISCARD QSize mapToWallpaper(const QSize &size) const;
+    Q_NODISCARD QRect mapToWallpaper(const QRect &rect) const;
+
+    Q_SLOT void maybeGenerateBlurredWallpaper(const bool force = false);
+    Q_SLOT void updateMaterialBrush();
+    Q_SLOT void forceRebuildWallpaper();
+
     void initialize();
     void prepareGraphicsResources();
 
-private:
-    QPointer<MicaMaterial> q_ptr = nullptr;
+    MicaMaterial *q_ptr = nullptr;
     QColor tintColor = {};
-    qreal tintOpacity = 0.0;
-    qreal noiseOpacity = 0.0;
+    qreal tintOpacity = qreal(0);
+    QColor fallbackColor = {};
+    qreal noiseOpacity = qreal(0);
+    bool fallbackEnabled = true;
     QBrush micaBrush = {};
     bool initialized = false;
+    QSize wallpaperSize = {};
 };
 
 FRAMELESSHELPER_END_NAMESPACE
 
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(MicaMaterialPrivate))
+#endif

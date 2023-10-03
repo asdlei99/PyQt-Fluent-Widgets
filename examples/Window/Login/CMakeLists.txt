@@ -9,23 +9,23 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5 COMPONENTS Widgets Multimedia REQUIRED)
+find_package(Qt6 COMPONENTS Widgets REQUIRED)
 
 # -----------------------------------------------------------------------------
 file(GLOB inc_files ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file(GLOB src_files ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
-qt5_wrap_ui(UI_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LoginWindow.ui)
+qt_wrap_ui(UI_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LoginWindow.ui)
 
 # add resource
 SET(RCC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/login.qrc)
-qt5_add_resources(RCC_SOURCES ${RCC_FILES})
+qt_add_resources(RCC_SOURCES ${RCC_FILES})
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
 add_executable(${DEMO_NAME} ${src_files} ${inc_files} ${UI_FILES} ${RCC_SOURCES})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Widgets QFluentWidgets FramelessHelperCore FramelessHelperWidgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Widgets QFluentWidgets FramelessHelperCore64 FramelessHelperWidgets64)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE

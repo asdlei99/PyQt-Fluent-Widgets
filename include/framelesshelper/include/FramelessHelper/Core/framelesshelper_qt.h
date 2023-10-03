@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,22 +24,23 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
 
 FRAMELESSHELPER_BEGIN_NAMESPACE
 
-Q_DECLARE_LOGGING_CATEGORY(lcFramelessHelperQt)
+struct SystemParameters;
 
 class FRAMELESSHELPER_CORE_API FramelessHelperQt : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DISABLE_COPY_MOVE(FramelessHelperQt)
 
 public:
     explicit FramelessHelperQt(QObject *parent = nullptr);
     ~FramelessHelperQt() override;
 
-    static void addWindow(const Global::SystemParameters &params);
+    static void addWindow(const SystemParameters *params);
     static void removeWindow(const WId windowId);
 
 protected:
@@ -47,5 +48,3 @@ protected:
 };
 
 FRAMELESSHELPER_END_NAMESPACE
-
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(FramelessHelperQt))

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (C) 2022 by wangwenx190 (Yuhang Zhao)
+ * Copyright (C) 2021-2023 by wangwenx190 (Yuhang Zhao)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,19 +24,22 @@
 
 #pragma once
 
-#include "framelesshelpercore_global.h"
+#include <FramelessHelper/Core/framelesshelpercore_global.h>
 #include <QtCore/qvariant.h>
+#include <optional>
+
+#ifdef Q_OS_WINDOWS
 
 #ifndef REGISTRYKEY_FORCE_QSETTINGS
 #  define REGISTRYKEY_FORCE_QSETTINGS (0)
 #endif // REGISTRYKEY_FORCE_QSETTINGS
 
 #ifndef REGISTRYKEY_IMPL
-#  if ((QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)) && !(REGISTRYKEY_FORCE_QSETTINGS))
+#  if ((QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)) && !(REGISTRYKEY_FORCE_QSETTINGS) && !defined(FRAMELESSHELPER_CORE_NO_PRIVATE))
 #    define REGISTRYKEY_IMPL (1)
-#  else // ((QT_VERSION < QT_VERSION_CHECK(5, 14, 0)) || REGISTRYKEY_FORCE_QSETTINGS)
+#  else // ((QT_VERSION < QT_VERSION_CHECK(5, 14, 0)) || REGISTRYKEY_FORCE_QSETTINGS || defined(FRAMELESSHELPER_CORE_NO_PRIVATE))
 #    define REGISTRYKEY_IMPL (2)
-#  endif // ((QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)) && !REGISTRYKEY_FORCE_QSETTINGS)
+#  endif // ((QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)) && !REGISTRYKEY_FORCE_QSETTINGS && !defined(FRAMELESSHELPER_CORE_NO_PRIVATE))
 #endif // REGISTRYKEY_IMPL
 
 #ifndef REGISTRYKEY_QWINREGISTRYKEY
@@ -57,6 +60,7 @@ FRAMELESSHELPER_BEGIN_NAMESPACE
 class FRAMELESSHELPER_CORE_API RegistryKey : public QObject
 {
     Q_OBJECT
+    FRAMELESSHELPER_CLASS_INFO
     Q_DISABLE_COPY_MOVE(RegistryKey)
 
 public:
@@ -73,7 +77,7 @@ public:
     Q_NODISCARD std::optional<T> value(const QString &name) const
     {
         const QVariant var = value(name);
-        if (var.isValid()) {
+        if (var.isValid() && !var.isNull()) {
             return qvariant_cast<T>(var);
         }
         return std::nullopt;
@@ -91,4 +95,4 @@ private:
 
 FRAMELESSHELPER_END_NAMESPACE
 
-Q_DECLARE_METATYPE2(FRAMELESSHELPER_PREPEND_NAMESPACE(RegistryKey))
+#endif // Q_OS_WINDOWS
