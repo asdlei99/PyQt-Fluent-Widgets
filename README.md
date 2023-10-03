@@ -44,7 +44,7 @@ English | <a href="docs/README_zh.md">简体中文</a>
 4. build examples:
 
    ```shell
-   cmake -B ./build -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_PREFIX_PATH="D:/Qt/5.15.2/mingw81_64" -G "MinGW Makefiles" .
+   cmake -B ./build -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_PREFIX_PATH="D:/Qt/6.5.2/mingw81_64" -G "MinGW Makefiles" .
 
    cd build
    make -j8

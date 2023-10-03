@@ -40,10 +40,9 @@
 4. 编译示例程序：
 
    ```shell
-   mkdir build
-   cd build
+   cmake -B ./build -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_PREFIX_PATH="D:/Qt/6.5.2/mingw81_64" -G "MinGW Makefiles" .
 
-   cmake -B ./build -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_PREFIX_PATH="D:/Qt/5.15.2/mingw81_64" -G "MinGW Makefiles" ../
+   cd build
    make -j8
    ```
 
