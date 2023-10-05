@@ -163,7 +163,7 @@ void TabInterface::initWidget()
     closeDisplayModeComboBox_->addItem(tr("Always"), QVariant(static_cast<int>(TabItem::Always)));
     closeDisplayModeComboBox_->addItem(tr("OnHover"), QVariant(static_cast<int>(TabItem::OnHover)));
     closeDisplayModeComboBox_->addItem(tr("Never"), QVariant(static_cast<int>(TabItem::Never)));
-    connect(closeDisplayModeComboBox_, ComboBox::currentIndexChanged, this, &TabInterface::onDisplayModeChanged);
+    connect(closeDisplayModeComboBox_, &ComboBox::currentIndexChanged, this, &TabInterface::onDisplayModeChanged);
 
     addSubInterface(songInterface_, "tabSongInterface", tr("Song"), ":/gallery/images/MusicNote.png");
     addSubInterface(albumInterface_, "tabAlbumInterface", tr("Album"), ":/gallery/images/Dvd.png");

@@ -1,8 +1,0 @@
-cmake_minimum_required(VERSION 3.5)
-project(QFluentWidgetsDemo LANGUAGES CXX)
-
-add_subdirectory(examples)
-
-configure_file(${CMAKE_SOURCE_DIR}/lib/libFramelessHelperCore.dll ${CMAKE_SOURCE_DIR}/build/bin/libFramelessHelperCore.dll COPYONLY)
-configure_file(${CMAKE_SOURCE_DIR}/lib/libFramelessHelperWidgets.dll ${CMAKE_SOURCE_DIR}/build/bin/libFramelessHelperWidgets.dll COPYONLY)
-configure_file(${CMAKE_SOURCE_DIR}/lib/libQFluentWidgets.dll ${CMAKE_SOURCE_DIR}/build/bin/libQFluentWidgets.dll COPYONLY)

@@ -4,7 +4,7 @@
 #include <QFluentWidgets/Components/Widgets/InfoBar.h>
 #include <QFluentWidgets/Components/Widgets/PushButton.h>
 #include <QFluentWidgets/Components/Widgets/TeachingTip.h>
-#include <QFluentWidgets/Components/Widgets/label.h>
+#include <QFluentWidgets/Components/Widgets/Label.h>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QWidget>

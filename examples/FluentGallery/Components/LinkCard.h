@@ -5,7 +5,7 @@
 #include <QFrame>
 #include <QLabel>
 #include <QUrl>
-#include <QVBoxlayout>
+#include <QVBoxLayout>
 
 class LinkCard : public QFrame
 {
