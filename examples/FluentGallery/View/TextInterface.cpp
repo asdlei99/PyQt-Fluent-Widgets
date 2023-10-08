@@ -39,6 +39,13 @@ TextInterface::TextInterface(QWidget* parent)
     addExampleCard(tr("A autosuggest line edit"), lineEditWithCompleter,
                    "https://github.com/zhiyiYo/PyQt-Fluent-Widgets/blob/master/examples/text/line_edit/demo.py");
 
+    // password line edit
+    auto passwordLineEdit = new PasswordLineEdit(this);
+    passwordLineEdit->setPlaceholderText(tr("Enter your password"));
+    passwordLineEdit->setFixedWidth(230);
+    addExampleCard(tr("A password line edit"), passwordLineEdit,
+                   "https://github.com/zhiyiYo/PyQt-Fluent-Widgets/blob/master/examples/text/line_edit/demo.py");
+
     // spin box
     addExampleCard(tr("A SpinBox with a spin button"), new SpinBox(this),
                    "https://github.com/zhiyiYo/PyQt-Fluent-Widgets/blob/master/examples/text/spin_box/demo.py");

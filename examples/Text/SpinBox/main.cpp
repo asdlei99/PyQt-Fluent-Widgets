@@ -2,7 +2,7 @@
 #include <QApplication>
 #include <QFluentWidgets/Common/FluentApp.h>
 #include <QFluentWidgets/Components/Widgets/SpinBox.h>
-#include <QVBoxLayout>
+#include <QGridLayout>
 
 using namespace qfluentwidgets;
 
@@ -12,19 +12,26 @@ class Demo : public Widget
 public:
     Demo(QWidget* parent = nullptr) : Widget(parent)
     {
-        auto vBoxLayout = new QVBoxLayout(this);
+        auto gridLayout = new QGridLayout(this);
 
-        vBoxLayout->setContentsMargins(100, 50, 100, 50);
-        vBoxLayout->addWidget(new SpinBox());
-        vBoxLayout->addWidget(new DoubleSpinBox());
-        vBoxLayout->addWidget(new TimeEdit());
-        vBoxLayout->addWidget(new DateEdit());
-        vBoxLayout->addWidget(new DateTimeEdit());
+        gridLayout->setContentsMargins(100, 50, 100, 50);
+        gridLayout->setHorizontalSpacing(30);
+
+        gridLayout->addWidget(new SpinBox(), 0, 0);
+        gridLayout->addWidget(new CompactSpinBox(), 0, 1, Qt::AlignLeft);
+
+        gridLayout->addWidget(new DoubleSpinBox(), 1, 0);
+        gridLayout->addWidget(new CompactDoubleSpinBox(), 1, 1, Qt::AlignLeft);
+
+        gridLayout->addWidget(new TimeEdit(), 2, 0);
+        gridLayout->addWidget(new CompactTimeEdit(), 2, 1, Qt::AlignLeft);
+
+        gridLayout->addWidget(new DateEdit(), 3, 0);
+        gridLayout->addWidget(new CompactDateEdit(), 3, 1, Qt::AlignLeft);
+
+        gridLayout->addWidget(new DateTimeEdit(), 4, 0);
+        gridLayout->addWidget(new CompactDateTimeEdit(), 4, 1, Qt::AlignLeft);
         resize(500, 500);
-
-        if (!isDarkTheme()) {
-            setStyleSheet("Demo{background:rgb(242,242,242)}");
-        }
     }
 };
 
@@ -38,6 +45,7 @@ int main(int argc, char* argv[])
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QApplication app(argc, argv);
+    app.setOrganizationName("Shokokawaii Inc.");
 
     Demo w;
     w.show();
