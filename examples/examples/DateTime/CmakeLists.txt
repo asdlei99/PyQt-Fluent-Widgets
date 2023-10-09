@@ -1,2 +1,0 @@
-add_subdirectory(CalendarPicker)
-add_subdirectory(TimePicker)

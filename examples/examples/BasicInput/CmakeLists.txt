@@ -1,8 +1,0 @@
-add_subdirectory(RadioButton)
-add_subdirectory(CheckBox)
-add_subdirectory(ComboBox)
-add_subdirectory(IconWidget)
-add_subdirectory(PushButton)
-add_subdirectory(ToolButton)
-add_subdirectory(Slider)
-add_subdirectory(SwitchButton)

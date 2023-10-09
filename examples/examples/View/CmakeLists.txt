@@ -1,5 +1,0 @@
-add_subdirectory(CardWidget)
-add_subdirectory(FlipView)
-add_subdirectory(ListView)
-add_subdirectory(TableView)
-add_subdirectory(TreeView)
