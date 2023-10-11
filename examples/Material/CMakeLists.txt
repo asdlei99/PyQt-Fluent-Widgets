@@ -1,1 +1,6 @@
 add_subdirectory(AcrylicBrush)
+add_subdirectory(AcrylicComboBox)
+add_subdirectory(AcrylicMenu)
+add_subdirectory(AcrylicFlyout)
+add_subdirectory(AcrylicLineEdit)
+add_subdirectory(AcrylicToolTip)
