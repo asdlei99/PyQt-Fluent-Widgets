@@ -29,6 +29,8 @@ MainWindow::MainWindow() : FluentWindow()
     viewInterface_ = new ViewInterface(this);
     settingInterface_ = new SettingInterface(this);
 
+    navigationInterface_->setAcrylicEnabled(true);
+
     connectSignalToSlot();
 
     initNavigation();
