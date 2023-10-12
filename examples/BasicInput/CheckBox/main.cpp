@@ -1,9 +1,11 @@
 #include "../../Shared/Widget.h"
 #include <QApplication>
-#include <QFluentWidgets/Common/FluentApp.h>
-#include <QFluentWidgets/Common/StyleSheet.h>
-#include <QFluentWidgets/Components/Widgets/CheckBox.h>
 #include <QVBoxLayout>
+
+// use header alias, you can also include header file like "QFluentWidgets/Common/FluentApp.h"
+#include <FApp>
+#include <FStyleSheet>
+#include <FCheckBox>
 
 using namespace qfluentwidgets;
 

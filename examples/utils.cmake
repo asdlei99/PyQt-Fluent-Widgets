@@ -25,6 +25,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Widgets QFluentWidgets Framele
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/include/QFluentWidgets/include
         ${CMAKE_SOURCE_DIR}/include/framelesshelper/include
         ${CMAKE_SOURCE_DIR}/include/framelesshelper/src/core
         ${CMAKE_SOURCE_DIR}/include/framelesshelper/src/widgets
